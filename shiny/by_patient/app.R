@@ -223,7 +223,16 @@ dat$regression_diff = "NODIFF"
 dat$z_diff = "NODIFF"
 dat$z = 0
 
-dat = dat[dat$replicate==1,]
+if(grepl("R03",basename(getwd()))){
+  repnum = 3
+}else if(grepl("R02",basename(getwd()))){
+  repnum = 2
+}else{
+  repnum = 1
+}
+
+dat = dat[dat$replicate==repnum,]
+
 
 subtext =c("healthy control","nuclear-encoded mutation in CI","single, large-scale mtDNA deletion","point mutation in mito. encoded tRNA Leucine 1 (MT-TL1)","point mutation in mito. encoded tRNA (MT-TE)","point mutation in mito. encoded tRNA (MT-TG)","point mutation in mito. encoded tRNA (MT-TW)")
 names(subtext) = c("Control", "CI", "Deletion", "MT-TL1", "MT-TE", "MT-TG", "MT-TW")
@@ -296,7 +305,7 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
 	width = 3,
-	verbatimTextOutput("urlText"),
+       #p(as.character(repnum)),
 	p("The default view of data from an IMC experiment is an array of interactive scatterplots.  These show protein expression levels in single skeletal fibres from one patient (coloured), compared against the same protein expression levels from all control subjects (grey).  Each panel compares the expression of a protein on the y-axis with a surrogate for mitochondrial mass on the x-axis.  Each fibre observed is represented by a point in each panel.  Individual patient fibres can be highlighted across all panels by selecting coloured points in any one panel."),
 	p("Switching 'Measure of protein expression' to any option besides the default ('2Dmito') displays a stripchart, representing protein expression levels observed for a patient (coloured) compared with those observed in control subjects (grey).  Selecting patient fibres causes expression profiles for those fibres to be overlaid on top of the stripchart."),
 	p("The plot below shows a matrix of Pearson's correlation coefficients between expression levels of each pair of proteins for all fibres from the selected patient.  Note that, for 2D 2Dmito plots, correlation between Ratio values is displayed."),
@@ -383,7 +392,7 @@ output$urlText = renderText({
   if(Sys.getenv('SHINY_PORT') == ""){
     basename(getwd())
   }else{
-    session$clientData$url_pathname
+    basename(session$clientData$url_pathname)
   }
   })
 

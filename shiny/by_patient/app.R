@@ -296,6 +296,7 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
 	width = 3,
+	verbatimTextOutput("urlText"),
 	p("The default view of data from an IMC experiment is an array of interactive scatterplots.  These show protein expression levels in single skeletal fibres from one patient (coloured), compared against the same protein expression levels from all control subjects (grey).  Each panel compares the expression of a protein on the y-axis with a surrogate for mitochondrial mass on the x-axis.  Each fibre observed is represented by a point in each panel.  Individual patient fibres can be highlighted across all panels by selecting coloured points in any one panel."),
 	p("Switching 'Measure of protein expression' to any option besides the default ('2Dmito') displays a stripchart, representing protein expression levels observed for a patient (coloured) compared with those observed in control subjects (grey).  Selecting patient fibres causes expression profiles for those fibres to be overlaid on top of the stripchart."),
 	p("The plot below shows a matrix of Pearson's correlation coefficients between expression levels of each pair of proteins for all fibres from the selected patient.  Note that, for 2D 2Dmito plots, correlation between Ratio values is displayed."),
@@ -377,6 +378,14 @@ fluidPage(
 }
 
 server <- function(input, output, session) {
+
+output$urlText = renderText({
+  if(Sys.getenv('SHINY_PORT') == ""){
+    basename(getwd())
+  }else{
+    session$clientData$url_pathname
+  }
+  })
 
   onBookmark(function(state) {
     state$values$selectids <- selected$ids

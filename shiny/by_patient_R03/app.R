@@ -79,7 +79,7 @@ for(pid in unique(dat$patrep_id)){
 dat=rbind(dat,dat_r,dat_theta)
 
 types = unique(dat$type)
-types = types[!types%in%c("Log mean intensity","Median intensity","Ratio median intensity (VDAC1)","Ratio log mean intensity (VDAC1)","z-score","r (VDAC1)")]
+types = types[!types%in%c("Log mean intensity","Median intensity","Ratio median intensity (VDAC1)","Ratio mean intensity (VDAC1)","Ratio log mean intensity (VDAC1)","z-score","r (VDAC1)")]
 types = c("2Dmito",types)
 
 dat$ch = factor(dat$ch, levels = cord)
@@ -227,7 +227,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	ids = selected$ids
 	hilite = d()$cell_id%in%ids
     plot.xy(xy.coords(x, y), type = "p", pch=16, col=cols,cex=cex)
-	points(x[hilite],y[hilite],col="black",pch=1,lwd=0.5,cex=1.5*cex)
+	#points(x[hilite],y[hilite],col="black",pch=1,lwd=0.5,cex=1.5*cex)
     box(col = "lightgray")
 }
 
@@ -439,6 +439,13 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
      diffs$x = diffs$x - mins$x
 
      dscl = d()
+	 ids = selected$ids
+	 mlab = inpt
+	 if(length(ids)>3) {
+	   dscl = dscl[dscl$cell_id%in%ids,]
+	   mlab = paste(mlab,"Selected fibres",sep="\n") 
+	 }
+	 
 	 if((inpt=="z-score")|(grepl(mitochan,inpt))) dscl = dscl[dscl$ch!=mitochan,]
      for(ch in mins$Group.1){
        minval = mins$x[mins$Group.1==ch]
@@ -463,7 +470,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	 }else{
 	   axrng = c(0,1)
 	 }
-     corrgram(widef,order=FALSE,lower.panel=plotIMC.shadecor,upper.panel=plotIMC.pts,abs=TRUE,col.regions = colorRampPalette(c("blue","white","red")),xlim=axrng,ylim=axrng,main=inpt)	
+     corrgram(widef,order=FALSE,lower.panel=plotIMC.shadecor,upper.panel=plotIMC.pts,abs=TRUE,col.regions = colorRampPalette(c("blue","white","red")),xlim=axrng,ylim=axrng,main=mlab)	
 	}
   
   output$IMC_mainplot = 

@@ -93,7 +93,7 @@ hiliteChannel = function(dat, hilite_channel = "Z_NDUFB8"){
  return(dhcolours[dat$cell_id])
 }
 
-updateDat = function(dat, dtype, dsubject, dhichan, cord = c()){
+updateDat = function(dat, dtype, dsubject, dhichan, cord = c(), clevel = 0.95){
 
     if(dtype == "2Dmito") {inpt = "Mean intensity"}else{inpt = dtype}
     dvals = dat[(dat$patrep_id==dsubject)&(dat$type==inpt),]
@@ -123,14 +123,14 @@ updateDat = function(dat, dtype, dsubject, dhichan, cord = c()){
 	dvals$z_diff = "NODIFF"
 	dvals$z_diff[dvals$z>3] = "ABOVE"
 	dvals$z_diff[dvals$z<(-3)] = "BELOW"
-	dvals$regression_diff = makeCond(dat,dsubject)[paste(dvals$ch,dvals$cell_id)]
+	dvals$regression_diff = makeCond(dat, dsubject, clevel)[paste(dvals$ch,dvals$cell_id)]
 	dvals$outlier_diff = factor(dvals$outlier_diff,levels=c("ABOVE","NODIFF","BELOW"))
     dvals$regression_diff = factor(dvals$regression_diff,levels=c("ABOVE","NODIFF","BELOW"))
 	dvals$z_diff = factor(dvals$z_diff,levels=c("ABOVE","NODIFF","BELOW"))
 	dvals
 }
 
-makeCond = function(dat,dsubject){
+makeCond = function(dat,dsubject, clevel = 0.95){
 	pimc = dat[(dat$patrep_id==dsubject)&(dat$type=="Mean intensity"),]
 	cimc = dat[(dat$subject_group=="Control")&(dat$type=="Mean intensity"),]
 	pimc$regression_diff = "NODIFF"
@@ -150,13 +150,10 @@ makeCond = function(dat,dsubject){
       xsyn = seq(min(rng),max(rng),length.out=50)
       mod = lm(yctrl~xctrl)
 
-      pred = predict(mod,newdata = data.frame(xctrl=xsyn), se.fit=TRUE,  interval = "prediction",na.action=na.omit)$fit
+      pred = predict(mod,newdata = data.frame(xctrl=xsyn), se.fit=TRUE,  interval = "prediction",na.action=na.omit, level = clevel)$fit
 	  mid = pred[,1]
       up = pred[,3]
       low = pred[,2]
-      psd = (up - low)/(2*1.96)
-      upz = mid+3*psd
-      lowz = mid-3*psd
 	  upy = approxfun(xsyn,up)
       lowy = approxfun(xsyn,low)
       

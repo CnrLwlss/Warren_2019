@@ -37,10 +37,11 @@ countCategories = function(pat,dat,type,difftype,chans,clevel=0.95){
  return(wcount[order(wcount$freq,decreasing=TRUE),])
 }
 
+clevel = 0.95
 chs = unique(dat$ch)
 pats = unique(dat$patrep_id)
 
-getcount = function(x) as.numeric(countFibres(dat,x,cord,type="theta (VDAC1)", difftype="regression_diff", position = "BELOW",clevel=0.99)$count)
+getcount = function(x) as.numeric(countFibres(dat,x,cord,type="theta (VDAC1)", difftype="regression_diff", position = "BELOW",clevel=clevel)$count)
 ctab = sapply(pats,getcount)
 rownames(ctab) = c(cord,"TOTAL")
 ctab = data.frame(t(ctab))
@@ -52,14 +53,15 @@ neworder = sort(colSums(ptab),decreasing=TRUE)
 ptab = ptab[,names(neworder)]
 ctab = ctab[,c(names(neworder),"TOTAL")]
 
-chans = names(neworder)
-chans = c("NDUFB8", "MTCO1", "UqCRC2")
-#chans = c("NDUFB8", "MTCO1", "UqCRC2","SDHA","OSCP")
+#chans = names(neworder)
+#chans = c("NDUFB8", "MTCO1", "UqCRC2")
+chans = c("NDUFB8", "MTCO1", "UqCRC2","SDHA","OSCP")
 chans = gsub("\\.","+",chans)
 
 for(pat in unique(dat$patrep_id)){
  print(pat)
- print(countCategories(pat,dat,type="theta (VDAC1)", difftype="regression_diff",chans))
+ ccs = countCategories(pat,dat,type="theta (VDAC1)", difftype="regression_diff",chans,clevel=clevel)
+ print(ccs[ccs$percent>1.0,])
 }
 
 wtab = cats("P03R01",dat,type,difftype,chans)

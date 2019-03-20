@@ -113,11 +113,11 @@ fluidPage(
 	  bookmarkButton()
 	)),
 	p(""),
-	p("The default view of data is an array of interactive scatterplots: 2Dmito, comparing protein expression levels in single skeletal fibres from one patient (coloured) with the same protein expression levels from all control subjects (grey).  Each plot compares the expression of a protein on the y-axis with a surrogate for mitochondrial mass on the x-axis.  Each fibre observed is represented by a single point in each scatterplot.  Solid grey line is linear regression through control data.  Dashed lines represent boundaries of 95% predcitive interval for control fibres.  Individual patient fibres can be highlighted across all panels by selecting coloured points in any one plot.  Patient fibres are coloured according to expression of the proteins selected in the 'Colour fibres by channel' drop-down menu: red fibres express the selected protien highly, blue fibres have the lowest expression of that protein.  Note that, for 2Dmito plots, we have chosen to colour by ratio of protein to mitochondrial mass.  To emphasise the link between fibres, selecting fibres on any one plot causes circles to be drawn around the position of those fibres in all plots."),
+	p("The default view of data is an array of interactive scatterplots: 2Dmito, comparing protein expression levels in single skeletal fibres from one patient (coloured) with the same protein expression levels from all control subjects (grey).  Each plot compares the expression of a protein on the y-axis with a surrogate for mitochondrial mass on the x-axis.  Each fibre observed is represented by a single point in each scatterplot.  Solid grey line is linear regression through control data.  Dashed lines represent boundaries of 95% predcitive interval for control fibres.  Individual patient fibres can be highlighted across all panels by selecting coloured points in any one plot.  Patient fibres are coloured according to expression of the proteins selected in the 'Colour fibres by channel' drop-down menu: red fibres express the selected protien least, blue fibres express that protein the most.  Amount of expression is measured by theta (see below).  To emphasise the link between fibres, selecting fibres on any one plot causes circles to be drawn around the position of those fibres in all plots."),
 	p("Switching 'Measure of protein expression' to any option besides the default (2Dmito) displays a stripchart, representing the distributions of protein expression levels observed for the selected patient (coloured) compared with those observed in control subjects (grey).  To emphasise the link between fibres, selecting fibres causes expression profiles for those fibres to be overlaid on top of the stripchart."),
 	p("To select & highlight the expression of all proteins for selected fibres, drag rectangles on the plots using the mouse.  To clear a selection, select any empty space on the plot."),
 	p("Two tables below the main panel summarise the proportion of fibres belonging to each of three categories: sigificantly ABOVE, BELOW or not different from (NODIFF) control fibres, for each protein.  A third table summarises all two-way combinations of overlap between channels for any pair of the three categories listed above (select category combinations using drop-down menus).  Two more tables summarise expression levels for each protein: one for the selected patient and another for all controls."),
-	p("The panel below shows a matrix of Pearson's correlation coefficients between expression levels of each pair of proteins for all fibres from the selected patient.  Note that, for 2Dmito plots, we have chosen to use the ratio of proteins to mitochondrial mass as the measure of protein expression."),
+	p("The panel below shows a matrix of Pearson's correlation coefficients between expression levels (theta) of each pair of proteins for all fibres from the selected patient."),
 	p("Below that, there are four tables summarising the properties of selected fibres (if any).")
     ),
 	mainPanel(
@@ -149,7 +149,7 @@ fluidPage(
 	htmlOutput("axrngUI"),
 	h4("Proportion of fibres lying outside 95% predictive interval in 2Dmito plot (%)"),
 	tableOutput("contingency_regression"),
-	h4("Proportion of fibres more likely to be from patients than controls, using 'Measure of protein expression' selected (ratio is reported if 2Dmito selected) (%)."),
+	h4("Proportion of fibres more likely to be from patients than controls (measured using theta) (%)."),
 	tableOutput("contingency_outlier"),
 	h4("Proportion of fibres overlapping between selected categories (BELOW, NODIFF or ABOVE) from all pairwise combinations of proteins (rows & columns) (%)"),
 	fluidRow(splitLayout(cellWidths = c("25%", "25%"),
@@ -358,7 +358,8 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
   })
   
   ratdat <- reactive({
-    dvals = dat[(dat$patrep_id==input$subject)&(dat$type=="Ratio mean intensity (VDAC1)"),]
+    #dvals = dat[(dat$patrep_id==input$subject)&(dat$type=="Ratio mean intensity (VDAC1)"),]
+    dvals = dat[(dat$patrep_id==input$subject)&(dat$type=="theta (VDAC1)"),]
     if(input$hichan != " "){
 	  allchans = unique(dvals$channel)
 	  actual_chan = allchans[agrep(input$hichan,allchans)[1]]
@@ -431,7 +432,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	}
 	
 	mycormat = function(){
-	 if(input$type == "2Dmito") {inpt = "Ratio mean intensity (VDAC1)"}else{inpt = input$type}
+	 if(input$type == "2Dmito") {inpt = "theta (VDAC1)"}else{inpt = input$type}
 	 dvs = dat[(dat$type==inpt),]
      mins = aggregate(dvs$value,by=list(dvs$ch),FUN=min)
      maxs = aggregate(dvs$value,by=list(dvs$ch),FUN=max)

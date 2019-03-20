@@ -168,7 +168,7 @@ makeCond = function(dat,dsubject, clevel = 0.95){
 	rd
 }
 
-overlaps = function(dat, dtype, dsubject, dhichan, row_condition, col_condition, cord = c()){
+overlaps = function(dat, dtype, dsubject, dhichan, row_condition, col_condition, cord = c(),counts = FALSE){
 
  if(dtype == "theta (VDAC1)"){
    cats = "outlier_diff"
@@ -188,6 +188,29 @@ overlaps = function(dat, dtype, dsubject, dhichan, row_condition, col_condition,
  colnames(patw) = gsub(paste(cats,".",sep=""),"",colnames(patw))
  rowcond = as.matrix(patw[,2:length(colnames(patw))]==row_condition)
  colcond = as.matrix(patw[,2:length(colnames(patw))]==col_condition)
-
- 100*round(crossprod(rowcond,colcond)/dim(patw)[1],3)[cord,cord]
+ 
+ rawcounts = crossprod(rowcond,colcond)[cord,cord]
+ percentages = 100*round(rawcounts/dim(patw)[1],3)
+ if(counts){
+   return(as.data.frame.matrix(rawcounts))
+ }else{
+   return(as.data.frame.matrix(percentages))
+ }
 }
+
+contig_outlier = function(dat,counts=FALSE){
+  dfm = as.data.frame.matrix(with(dat,table(outlier_diff,ch)))
+  if(counts){return(dfm)}else{return(100*dfm/length(unique(dat$cell_id)))}
+}
+
+contig_regression = function(dat,counts=FALSE){
+  dfm = as.data.frame.matrix(with(dat,table(regression_diff,ch)))
+  if(counts){return(dfm)}else{return(100*dfm/length(unique(dat$cell_id)))}
+}
+
+contig_z = function(dat,counts=FALSE){
+  dfm = as.data.frame.matrix(with(dat,table(z_diff,ch)))
+  if(counts){return(dfm)}else{return(100*dfm/length(unique(dat$cell_id)))}
+}
+
+

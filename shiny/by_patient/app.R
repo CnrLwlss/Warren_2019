@@ -45,7 +45,6 @@ labs = paste(subjs," (",subtext[grps[subjs]],")",sep="")
 names(subjs) = labs
 subjs = sort(subjs)
 
-
 cutcords = c(2.5,3.5,4.5,6.5,7.5)#,8.5)
 cordlabs = c("CI","CII","CIII","CIV","CV","OMM")#,"Cell")
 cord = c("NDUFB8","GRIM19","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"Dystrophin","DNA1")
@@ -102,7 +101,7 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
 	width = 3,
-	p("This instance of plotIMC is a tool for interactive analysis of IMC data gathered from skeletal muscle fibre sections sampled from patients with mitochondrial diseases.  Data from Warren et al. (2019): Imaging mass cytometry to explore multi-dimensional respiratory chain deficiency phenotypes in single skeletal muscle fibres"),
+	p("This webpage is a tool for interactive analysis of IMC data gathered from skeletal muscle fibre sections sampled from patients with mitochondrial disease.  Data from Warren et al. (2019): IAn Imaging Mass Cytometric approach to decoding mitochondrial heterogeneity at a single muscle fibre resolution"),
 	checkboxInput("showControls", label = "Show all control data alongside patient data?", value = TRUE, width = NULL),
     selectInput("subject", "Subject/patient", subjs),
 	selectInput("type", "Measure of protein expression", types, selected="2Dmito"),#"Ratio mean intensity (VDAC1)"),
@@ -113,12 +112,12 @@ fluidPage(
 	  bookmarkButton()
 	)),
 	p(""),
-	p("The default view of data is an array of interactive scatterplots: 2Dmito, comparing protein expression levels in single skeletal fibres from one patient (coloured) with the same protein expression levels from all control subjects (grey).  Each plot compares the expression of a protein on the y-axis with a surrogate for mitochondrial mass on the x-axis.  Each fibre observed is represented by a single point in each scatterplot.  Solid grey line is linear regression through control data.  Dashed lines represent boundaries of 95% predcitive interval for control fibres.  Individual patient fibres can be highlighted across all panels by selecting coloured points in any one plot.  Patient fibres are coloured according to expression of the proteins selected in the 'Colour fibres by channel' drop-down menu: red fibres express the selected protien least, blue fibres express that protein the most.  Amount of expression is measured by theta (see below).  To emphasise the link between fibres, selecting fibres on any one plot causes circles to be drawn around the position of those fibres in all plots."),
-	p("Switching 'Measure of protein expression' to any option besides the default (2Dmito) displays a stripchart, representing the distributions of protein expression levels observed for the selected patient (coloured) compared with those observed in control subjects (grey).  To emphasise the link between fibres, selecting fibres causes expression profiles for those fibres to be overlaid on top of the stripchart."),
+	p("The default view of data is an array of interactive scatterplots: 2Dmito, comparing the expression of a protein on the y-axis with a surrogate for mitochondrial mass on the x-axis.  Coloured points represent fibres from a patient, and grey points represent fibres from all control subjects.  Each fibre observed is represented by a point in each scatterplot.  Solid grey line is linear regression through control data.  Dashed lines represent boundaries of 95% predcitive interval for control fibres.  Points are coloured according to expression of the proteins selected in the 'Colour fibres by channel' drop-down menu: red fibres express the selected protein least, blue fibres express that protein the most.  Amount of expression is measured by theta (see below).  To emphasise the multiple measurements made for each fibre, selecting fibres on any one plot (including stripcharts) causes circles to be drawn around the position of those fibres in all other plots."),
+	p("Switching 'Measure of protein expression' to any option besides the default (2Dmito) displays a stripchart, representing the distributions of protein expression levels observed for the selected patient (coloured) compared with those observed in control subjects (grey)."),
 	p("To select & highlight the expression of all proteins for selected fibres, drag rectangles on the plots using the mouse.  To clear a selection, select any empty space on the plot."),
 	p("Two tables below the main panel summarise the proportion of fibres belonging to each of three categories: sigificantly ABOVE, BELOW or not different from (NODIFF) control fibres, for each protein.  A third table summarises all two-way combinations of overlap between channels for any pair of the three categories listed above (select category combinations using drop-down menus).  Two more tables summarise expression levels for each protein: one for the selected patient and another for all controls."),
 	p("The panel below shows a matrix of Pearson's correlation coefficients between expression levels (theta) of each pair of proteins for all fibres from the selected patient."),
-	p("Below that, there are four tables summarising the properties of selected fibres (if any).")
+	p("Below that, there are four tables summarising the properties of any selected fibres.")
     ),
 	mainPanel(
    conditionalPanel(
@@ -146,12 +145,13 @@ fluidPage(
 	 ))
 	 ), 
 	checkboxInput("axrngCheck", label = "Allow plot y-axis range to vary between patients?", value = TRUE, width = NULL),
+	checkboxInput("counts", label = "Show raw count data in table (alternative is percentages)?", value = FALSE, width = NULL),
 	htmlOutput("axrngUI"),
-	h4("Proportion of fibres lying outside 95% predictive interval in 2Dmito plot (%)"),
+	h4("Proportion (%) of fibres lying outside predictive interval for control fibres in 2Dmito plot"),
 	tableOutput("contingency_regression"),
-	h4("Proportion of fibres more likely to be from patients than controls (measured using theta) (%)."),
+	h4("Proportion (%) of fibres more likely to be from patients than controls (measured using theta)"),
 	tableOutput("contingency_outlier"),
-	h4("Proportion of fibres overlapping between selected categories (BELOW, NODIFF or ABOVE) from all pairwise combinations of proteins (rows & columns) (%)"),
+	h4("Proportion (%) of fibres overlapping between selected categories (BELOW, NODIFF or ABOVE) from all pairwise combinations of proteins (rows & columns)"),
 	fluidRow(splitLayout(cellWidths = c("25%", "25%"),
 	  selectInput("overlapRows", "Overlap row:", c("BELOW","NODIFF","ABOVE"),selectize=FALSE),
       selectInput("overlapColumns", "Overlap column:", c("BELOW","NODIFF","ABOVE"),selectize=FALSE)
@@ -168,9 +168,9 @@ fluidPage(
 	tableOutput("summdatsel"),
 	h4("Selected fibres: raw values"),
 	tableOutput("selected_value"),
-	h4("Selected fibres: Proportion of fibres lying outside 2Dmito 95% predictive interval (%)"),
+	h4("Selected fibres: fibre categories, predictive interval for contols"),
 	tableOutput("selected_regression"),
-	h4("Selected fibres: Proportion of fibres more likely to be from patients than controls, using 'Measure of protein expression' selected (ratio is reported if 2Dmito selected) (%)."),
+	h4("Selected fibres: fibre categories, (theta) more likely to be from patients than controls"),
 	tableOutput("selected_outlier")
 	)
   )
@@ -395,6 +395,11 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
        sliderInput("axrng", "Fix range for axes of all plots:", min = minval, max = maxval, step=stepval, width="850px", value = c(minval, maxval), dragRange = TRUE)
 	  }
   })
+  
+  makeOverlaps <- reactive({overlaps(dat, ifelse(input$type=="Mean intensity","2Dmito",input$type), input$subject, input$hichan, input$overlapRows, input$overlapColumns, cord, input$counts)})
+  makeContOut <- reactive({contig_outlier(d(),input$counts)})
+  makeContReg <- reactive({contig_regression(d(),input$counts)})
+  makeContZ <- reactive({contig_z(d(),input$counts)})
  
   output$plot_brushedpoints = renderTable(within(d()[d()$cell_id%in%selected$ids,],rm(jitl,jitr,jit,num,chstr,hcol,colour)))
   
@@ -407,11 +412,15 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
   output$selected_regression = renderTable(getwide(d()[d()$cell_id%in%selected$ids,],"regression_diff"))
   output$selected_z = renderTable(getwide(d()[d()$cell_id%in%selected$ids,],"z_diff"))
   
-  output$contingency_outlier = renderTable(as.data.frame.matrix(100*with(d(),table(outlier_diff,ch))/length(unique(d()$cell_id))),include.rownames=TRUE)
-  output$contingency_regression = renderTable(as.data.frame.matrix(100*with(d(),table(regression_diff,ch))/length(unique(d()$cell_id))),include.rownames=TRUE)
-  output$contingency_z = renderTable(as.data.frame.matrix(100*with(d(),table(z_diff,ch))/length(unique(d()$cell_id))),include.rownames=TRUE)
+  #output$contingency_outlier = renderTable(as.data.frame.matrix(100*with(d(),table(outlier_diff,ch))/length(unique(d()$cell_id))),include.rownames=TRUE)
+  #output$contingency_regression = renderTable(as.data.frame.matrix(100*with(d(),table(regression_diff,ch))/length(unique(d()$cell_id))),include.rownames=TRUE)
+  #output$contingency_z = renderTable(as.data.frame.matrix(100*with(d(),table(z_diff,ch))/length(unique(d()$cell_id))),include.rownames=TRUE)
   
-  output$overlap = renderTable(overlaps(dat, input$type, input$subject, input$hichan, input$overlapRows, input$overlapColumns, cord),include.rownames=TRUE)
+  output$contingency_outlier = renderTable(makeContOut(),include.rownames=TRUE)
+  output$contingency_regression = renderTable(makeContReg(),include.rownames=TRUE)
+  output$contingency_z = renderTable(makeContZ(),include.rownames=TRUE)
+  
+  output$overlap = renderTable(makeOverlaps(),include.rownames=TRUE)
   
 
 	mystripchart = function(){
@@ -439,7 +448,8 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
      diffs = maxs
      diffs$x = diffs$x - mins$x
 
-     dscl = d()
+     #dscl = d()
+	 dscl = updateDat(dat, inpt, input$subject, input$hichan, cord)
 	 ids = selected$ids
 	 mlab = inpt
 	 if(length(ids)>3) {
@@ -467,10 +477,13 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
      cordnew = cord[cord%in%widefnames]
      widef = subset(widef,select = cordnew)
 	 if(!input$axrngCorr){
-	   axrng = range(dscl$value[is.finite(dscl$value)],na.rm=TRUE)
+	   axrng = range(dscl$value[(is.finite(dscl$value))&(dscl$type==inpt)],na.rm=TRUE)
 	 }else{
-	   axrng = c(0,1)
+	   axrng = c(-1,1)
 	 }
+	 #print(head(dscl))
+	 #print(inpt)
+	 #print(axrng)
      corrgram(widef,order=FALSE,lower.panel=plotIMC.shadecor,upper.panel=plotIMC.pts,abs=TRUE,col.regions = colorRampPalette(c("blue","white","red")),xlim=axrng,ylim=axrng,main=mlab)	
 	}
   

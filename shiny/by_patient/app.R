@@ -1,38 +1,31 @@
 library(shiny)
 library(data.table)
+library(corrgram)
+
 source("../plotFunctions.R", local = TRUE)
 source("../dataFunctions.R", local = TRUE)
 
-library(corrgram)
-
-dat = fread("../dat.txt",sep="\t",stringsAsFactors=FALSE,header=TRUE)
-dat$hcol = hiliteChannel(dat)
-
-dat$ch = substring(dat$channel,regexpr("\\_[^\\_]*$", dat$channel)+1,nchar(dat$channel))
-dat$type = "Mean intensity"
-dat$type[grepl("LOG_",dat$channel)] = "Log mean intensity"
-dat$type[grepl("MED_",dat$channel)] = "Median intensity"
-dat$type[grepl("R_",dat$channel)] = "Ratio mean intensity (VDAC1)"
-dat$type[grepl("R_MED_",dat$channel)] = "Ratio median intensity (VDAC1)"
-dat$type[grepl("R_LOG_",dat$channel)] = "Ratio log mean intensity (VDAC1)"
-dat$type[grepl("Z_",dat$channel)] = "z-score"
-dat$outlier_diff = "NODIFF"
-dat$regression_diff = "NODIFF"
-dat$z_diff = "NODIFF"
-dat$z = 0
-
-if(grepl("R03",basename(getwd()))){
-  repnum = 3
-}else if(grepl("R02",basename(getwd()))){
-  repnum = 2
-}else{
-  repnum = 1
-}
-
-dat = dat[dat$replicate==repnum,]
-
 subtext =c("healthy control","nuclear-encoded mutation in CI","single, large-scale mtDNA deletion","point mutation in mito. encoded tRNA Leucine 1 (MT-TL1)","point mutation in mito. encoded tRNA (MT-TE)","point mutation in mito. encoded tRNA (MT-TG)","point mutation in mito. encoded tRNA (MT-TW)")
 names(subtext) = c("Control", "CI", "Deletion", "MT-TL1", "MT-TE", "MT-TG", "MT-TW")
+
+cutcords = c(2.5,3.5,4.5,6.5,7.5)#,8.5)
+cordlabs = c("CI","CII","CIII","CIV","CV","OMM")#,"Cell")
+cord = c("NDUFB8","GRIM19","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"Dystrophin","DNA1")
+chlabs = c("CI","CI","CII","CIII","CIV","CIV","CV","OMM")
+names(chlabs) = cord
+mitochan = "VDAC1"
+
+source("../parseData.R", local = TRUE)
+
+fulldat = "../dat.txt"
+zipdat = "../datsmall.txt.gz"
+
+if(!file.exists(zipdat)){
+ dat = getData(fulldat,cord,mitochan)
+ write.table(dat,gzfile(zipdat),quote=FALSE,sep="\t",row.names=FALSE)
+}else{
+ dat = fread(zipdat,sep="\t",stringsAsFactors=FALSE,header=TRUE)
+}
 
 subdf = unique(dat[,c("patrep_id","subject_group")])
 subjs = subdf$patrep_id
@@ -45,37 +38,17 @@ labs = paste(subjs," (",subtext[grps[subjs]],")",sep="")
 names(subjs) = labs
 subjs = sort(subjs)
 
-cutcords = c(2.5,3.5,4.5,6.5,7.5)#,8.5)
-cordlabs = c("CI","CII","CIII","CIV","CV","OMM")#,"Cell")
-cord = c("NDUFB8","GRIM19","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"Dystrophin","DNA1")
-chlabs = c("CI","CI","CII","CIII","CIV","CIV","CV","OMM")
-names(chlabs) = cord
-mitochan = "VDAC1"
-
-dat = dat[dat$ch%in%cord,]
-dat$chstr = dat$ch
-transform = log
-dat_r = dat[dat$type=="Mean intensity",]
-dat_r$type = "r (VDAC1)"
-dat_theta = dat[dat$type=="Mean intensity",]
-dat_theta$type = "theta (VDAC1)"
-
-for(pid in unique(dat$patrep_id)){
- for(ch in cord){
-	dt = dat[(dat$patrep_id==pid)&(dat$type=="Mean intensity"),]
-
-	isch = as.character(dt$ch)==ch
-	ismito = as.character(dt$ch)== mitochan
-	prot = dt[isch,]
-	mito = dt[ismito,]
-
-	x = mito$value
-	y = prot$value
-	dat_r$value[(dat_r$patrep_id==pid)&(as.character(dat_r$ch)==ch)] = sqrt(x^2+y^2)
-	dat_theta$value[(dat_theta$patrep_id==pid)&(as.character(dat_theta$ch)==ch)] = 360*atan(y/x)/(2*pi)
- }
+if(grepl("R03",basename(getwd()))){
+  repnum = 3
+}else if(grepl("R02",basename(getwd()))){
+  repnum = 2
+}else{
+  repnum = 1
 }
-dat=rbind(dat,dat_r,dat_theta)
+
+dat = dat[dat$replicate==repnum,]
+
+dat$hcol = hiliteChannel(dat)
 
 types = unique(dat$type)
 types = types[!types%in%c("Log mean intensity","Median intensity","Ratio median intensity (VDAC1)","Ratio mean intensity (VDAC1)","Ratio log mean intensity (VDAC1)","z-score","r (VDAC1)")]

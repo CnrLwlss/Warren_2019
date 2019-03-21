@@ -48,7 +48,7 @@ if(grepl("R03",basename(getwd()))){
 
 dat = dat[dat$replicate==repnum,]
 
-dat$hcol = hiliteChannel(dat)
+dat$hcol = hiliteChannel(dat,hilite_channel = "THETA_NDUFB8")
 
 types = unique(dat$type)
 types = types[!types%in%c("Log mean intensity","Median intensity","Ratio median intensity (VDAC1)","Ratio mean intensity (VDAC1)","Ratio log mean intensity (VDAC1)","z-score","r (VDAC1)")]

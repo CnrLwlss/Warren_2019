@@ -183,8 +183,8 @@ overlaps = function(dat, dtype, dsubject, dhichan, row_condition, col_condition,
  }
  
  pat = data.frame(updateDat(dat, dtype, dsubject, dhichan, cord))
- pat = pat[,c("cell_id","channel",eval(cats))]
- patw = reshape(pat, idvar="cell_id", timevar="channel",direction="wide")
+ pat = pat[,c("cell_id","ch",eval(cats))]
+ patw = reshape(pat, idvar="cell_id", timevar="ch",direction="wide")
  colnames(patw) = gsub(paste(cats,".",sep=""),"",colnames(patw))
  rowcond = as.matrix(patw[,2:length(colnames(patw))]==row_condition)
  colcond = as.matrix(patw[,2:length(colnames(patw))]==col_condition)

@@ -27,6 +27,16 @@ if(!file.exists(zipdat)){
  dat = fread(zipdat,sep="\t",stringsAsFactors=FALSE,header=TRUE)
 }
 
+if(grepl("R03",basename(getwd()))){
+  repnum = 3
+}else if(grepl("R02",basename(getwd()))){
+  repnum = 2
+}else{
+  repnum = 1
+}
+
+dat = dat[dat$replicate==repnum,]
+
 subdf = unique(dat[,c("patrep_id","subject_group")])
 subjs = subdf$patrep_id
 grps = subdf$subject_group
@@ -38,15 +48,6 @@ labs = paste(subjs," (",subtext[grps[subjs]],")",sep="")
 names(subjs) = labs
 subjs = sort(subjs)
 
-if(grepl("R03",basename(getwd()))){
-  repnum = 3
-}else if(grepl("R02",basename(getwd()))){
-  repnum = 2
-}else{
-  repnum = 1
-}
-
-dat = dat[dat$replicate==repnum,]
 
 dat$hcol = hiliteChannel(dat,hilite_channel = "THETA_NDUFB8")
 

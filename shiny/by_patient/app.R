@@ -548,5 +548,5 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 
 
 }
-
-shinyApp(ui,server,enableBookmarking = "url")
+enableBookmarking("url")
+shinyApp(ui,server)

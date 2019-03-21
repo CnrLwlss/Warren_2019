@@ -98,26 +98,6 @@ nmax = 20
 ui <- function(request){
 
 fluidPage(
-# https://support.dominodatalab.com/hc/en-us/articles/360015932932-Increasing-the-timeout-for-Shiny-Server
-tags$head(
-        HTML(
-          "
-          <script>
-          var socket_timeout_interval
-          var n = 0
-          $(document).on('shiny:connected', function(event) {
-          socket_timeout_interval = setInterval(function(){
-          Shiny.onInputChange('count', n++)
-          }, 15000)
-          });
-          $(document).on('shiny:disconnected', function(event) {
-          clearInterval(socket_timeout_interval)
-          });
-          </script>
-          "
-        )
-        ),
-  textOutput("keepAlive"),
   titlePanel("plotIMC - interactive visualisation of imaging mass cytometry data"),
   sidebarLayout(
     sidebarPanel(
@@ -200,10 +180,6 @@ tags$head(
 
 server <- function(input, output, session) {
 
-output$keepAlive <- renderText({
-      req(input$count)
-      paste("keep alive ", input$count)
-    })
 
   onBookmark(function(state) {
     state$values$selectids <- selected$ids

@@ -79,15 +79,16 @@ tSNE_plot = function(dts, cols){
   return(dts)
 }
 
-hiliteChannel = function(dat, hilite_channel = "Z_NDUFB8"){
+hiliteChannel = function(dat, hilite_ch = "NDUFB8", hilite_type = "theta (VDAC1)"){
  hcol = colorRamp(c("red","yellow","blue"),space="Lab")
  hcol_rgb = function(x, alpha=0.3){
    vals = hcol(x)
    return(rgb(vals[1]/255,vals[2]/255,vals[3]/255,alpha))
  }
- 
- dhilite = dat[dat$channel==hilite_channel,]
+
+ dhilite = dat[(as.character(dat$ch)==hilite_ch)&(dat$type==ifelse(hilite_type=="2Dmito","theta (VDAC1)",hilite_type)),]
  dhilite$quant = ecdf(dhilite$value)(dhilite$value)
+ 
  dhcolours = sapply(dhilite$quant,hcol_rgb)
  names(dhcolours) = dhilite$cell_id
  return(dhcolours[dat$cell_id])
@@ -106,9 +107,8 @@ updateDat = function(dat, dtype, dsubject, dhichan, cord = c(), clevel = 0.95){
 	
     datmat = makedatmat(dvals)
 	if(dhichan != " "){
-	  allchans = unique(dvals$channel)
-	  actual_chan = allchans[agrep(dhichan,allchans)[1]]
-	  dvals$hcol = hiliteChannel(dvals, actual_chan)
+	  hitype = ifelse(dtype=="2Dmito","theta (VDAC1)",dtype)
+	  dvals$hcol = hiliteChannel(dat[(dat$patrep_id==dsubject)&(dat$type==hitype),], dhichan,hitype)
 	  if((dtype == "z-score")||(grepl("Ratio",dtype))) dvals$hcol[dvals$ch==mitochan] = rgb(0/255,154/255,73/255,0.25)
 	  if(dtype == "z-score") dvals = dvals[!dvals$ch%in%c("Dystrophin","DNA1"),]
 	}

@@ -80,7 +80,6 @@ arrayplot = function(pimc,cimc,rdat,cord,ch,ids=c(),reg_diff=c(),mitochan="VDAC1
 	
 	cols = "red"
 	colsel = "red"
-	
     if(hichan == " "){
       cols = rcols[pimc$cluster]
       bcol = rgb(0.89,0.89,0.89)

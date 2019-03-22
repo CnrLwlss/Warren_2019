@@ -49,7 +49,7 @@ names(subjs) = labs
 subjs = sort(subjs)
 
 
-dat$hcol = hiliteChannel(dat,hilite_channel = "THETA_NDUFB8")
+dat$hcol = hiliteChannel(dat,hilite_ch = "NDUFB8",hilite_type = "theta (VDAC1)")
 
 types = unique(dat$type)
 types = types[!types%in%c("Log mean intensity","Median intensity","Ratio median intensity (VDAC1)","Ratio mean intensity (VDAC1)","Ratio log mean intensity (VDAC1)","z-score","r (VDAC1)")]
@@ -337,9 +337,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
     #dvals = dat[(dat$patrep_id==input$subject)&(dat$type=="Ratio mean intensity (VDAC1)"),]
     dvals = dat[(dat$patrep_id==input$subject)&(dat$type=="theta (VDAC1)"),]
     if(input$hichan != " "){
-	  allchans = unique(dvals$channel)
-	  actual_chan = allchans[agrep(input$hichan,allchans)[1]]
-	  dvals$hcol = hiliteChannel(dvals, actual_chan)
+	  dvals$hcol = hiliteChannel(dvals, input$hichan, "theta (VDAC1)")
 	}
 	dvals
   })

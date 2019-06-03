@@ -10,7 +10,7 @@ names(subtext) = c("Control", "CI", "Deletion", "MT-TL1", "MT-TE", "MT-TG", "MT-
 
 cutcords = c(2.5,3.5,4.5,6.5,7.5)#,8.5)
 cordlabs = c("CI","CII","CIII","CIV","CV","OMM")#,"Cell")
-cord = c("NDUFB8","GRIM19","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"Dystrophin","DNA1")
+cord = c("NDUFA13","NDUFB8","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"Dystrophin","DNA1")
 chlabs = c("CI","CI","CII","CIII","CIV","CIV","CV","OMM")
 names(chlabs) = cord
 mitochan = "VDAC1"
@@ -104,8 +104,8 @@ fluidPage(
     condition = "input.type == '2Dmito'",  
      fluidRow(
 	   splitLayout(cellWidths=c("25%","25%","25%","25%"),
+	   plotOutput("NDUFA13",brush = brushOpts(id = "brush_NDUFA13", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
 	   plotOutput("NDUFB8",brush = brushOpts(id = "brush_NDUFB8", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
-	   plotOutput("GRIM19",brush = brushOpts(id = "brush_GRIM19", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
 	   plotOutput("SDHA",brush = brushOpts(id = "brush_SDHA", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
 	   plotOutput("UqCRC2",brush = brushOpts(id = "brush_UqCRC2", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
 	 ))
@@ -233,13 +233,12 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
 	}
   })
-  
-  
-  observeEvent(eventExpr = input$brush_NDUFB8, handlerExpr = {
+
+  observeEvent(eventExpr = input$brush_NDUFA13, handlerExpr = {
     dl = d()
 	dl$value = log(dl$value)
     dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
-    bps = brushedPoints(dw, input$brush_NDUFB8, paste("value",mitochan,sep="."), "value.NDUFB8")
+    bps = brushedPoints(dw, input$brush_NDUFA13, paste("value",mitochan,sep="."), "value.NDUFA13")
 	if(length(bps$cell_id)==0) {
 	  selected$ids=c()
 	}else{
@@ -247,11 +246,11 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	}
   })
   
-    observeEvent(eventExpr = input$brush_GRIM19, handlerExpr = {
+  observeEvent(eventExpr = input$brush_NDUFB8, handlerExpr = {
     dl = d()
 	dl$value = log(dl$value)
     dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
-    bps = brushedPoints(dw, input$brush_GRIM19, paste("value",mitochan,sep="."), "value.GRIM19")
+    bps = brushedPoints(dw, input$brush_NDUFB8, paste("value",mitochan,sep="."), "value.NDUFB8")
 	if(length(bps$cell_id)==0) {
 	  selected$ids=c()
 	}else{
@@ -470,14 +469,14 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
   #  myarrayplot()
   #},width=850,height=850,pointsize=20)
   
-    output$NDUFB8 <- renderPlot({
+	output$NDUFA13 <- renderPlot({
 	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
-	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="NDUFB8",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("A (",chlabs["NDUFB8"],")",sep=""),logify = TRUE)
+	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="NDUFA13",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("A (",chlabs["NDUFA13"],")",sep=""),logify = TRUE)
 	par(op)
 	})
-	output$GRIM19 <- renderPlot({
+    output$NDUFB8 <- renderPlot({
 	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
-	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="GRIM19",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("B (",chlabs["GRIM19"],")",sep=""),logify = TRUE)
+	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="NDUFB8",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("B (",chlabs["NDUFB8"],")",sep=""),logify = TRUE)
 	par(op)
 	})
 	output$SDHA <- renderPlot({

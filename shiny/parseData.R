@@ -2,6 +2,7 @@ library(data.table)
 
 getData = function(fname,cord,mitochan="VDAC1"){
   dat = fread(fname,sep="\t",stringsAsFactors=FALSE,header=TRUE)
+  dat$channel = gsub("GRIM19","NDUFA13",dat$channel)
 
   dat$ch = substring(dat$channel,regexpr("\\_[^\\_]*$", dat$channel)+1,nchar(dat$channel))
   dat = dat[dat$ch%in%cord,]
@@ -30,7 +31,7 @@ getData = function(fname,cord,mitochan="VDAC1"){
   	dt = dat[(dat$patrep_id==pid)&(dat$type=="Mean intensity"),]
 
 	isch = as.character(dt$ch)==ch
-	ismito = as.character(dt$ch)== "VDAC1"
+	ismito = as.character(dt$ch)==mitochan
 	prot = dt[isch,]
 	mito = dt[ismito,]
 

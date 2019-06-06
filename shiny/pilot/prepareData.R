@@ -1,3 +1,5 @@
+library(data.table)
+
 pdat = fread("../pilot_data.csv",sep=",",stringsAsFactors=FALSE)
 grp = ifelse(substring(pdat$Folder,1,1)=="C","Control","Patient")
 draw = data.frame(value=pdat$Value,id=pdat$ID,channel=pdat$Channel,patient_type=grp,replicate=1,subject_group=grp,patrep_id = paste(pdat$Folder,sprintf("R%02d",1),sep=""),stringsAsFactors=FALSE)

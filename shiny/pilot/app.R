@@ -17,8 +17,13 @@ mitochan = "VDAC1"
 
 source("../parseData.R", local = TRUE)
 
-fulldat = "../dat.txt"
-zipdat = "../datsmall.txt.gz"
+fulldat = "../pilot_data.txt"
+zipdat = "../pilot_datasmall.txt.gz"
+
+cord = c("NDUFA13","NDUFB8","SDHA", "UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1","TOM20","Dystrophin","DNA1","DNA2")
+chlabs=c("CI","CI","CII", "CIII","CIV","CIV","CV","OMM","OMM","OMM","OMM","OMM")
+names(chlabs) = cord
+mitochan = "VDAC1"
 
 if(!file.exists(zipdat)){
  dat = getData(fulldat,cord,mitochan)
@@ -48,7 +53,6 @@ labs = paste(subjs," (",subtext[grps[subjs]],")",sep="")
 names(subjs) = labs
 subjs = sort(subjs)
 
-
 dat$hcol = hiliteChannel(dat,hilite_ch = "NDUFB8",hilite_type = "theta (VDAC1)")
 
 types = unique(dat$type)
@@ -76,7 +80,7 @@ fluidPage(
   sidebarLayout(
     sidebarPanel(
 	width = 3,
-	p("This webpage is a tool for interactive analysis of IMC data gathered from skeletal muscle fibre sections sampled from patients with mitochondrial disease.  Data from Warren et al. (2019): IAn Imaging Mass Cytometric approach to decoding mitochondrial heterogeneity at a single muscle fibre resolution"),
+	p("This webpage is a tool for interactive analysis of IMC data gathered from skeletal muscle fibre sections sampled from patients with mitochondrial disease.  Pilot data for Warren et al. (2019): An Imaging Mass Cytometric approach to decoding mitochondrial heterogeneity at a single muscle fibre resolution"),
 	checkboxInput("showControls", label = "Show all control data alongside patient data?", value = TRUE, width = NULL),
     selectInput("subject", "Subject/patient", subjs),
 	selectInput("type", "Measure of protein expression", types, selected="2Dmito"),#"Ratio mean intensity (VDAC1)"),
@@ -116,7 +120,17 @@ fluidPage(
 	   splitLayout(cellWidths=c("25%","25%","25%","25%"),
 	   plotOutput("COX4",brush = brushOpts(id = "brush_COX4", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
 	   plotOutput("MTCO1",brush = brushOpts(id = "brush_MTCO1", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
-	   plotOutput("OSCP",brush = brushOpts(id = "brush_OSCP", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
+	   plotOutput("OSCP",brush = brushOpts(id = "brush_OSCP", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
+	   plotOutput("TOM20",brush = brushOpts(id = "brush_TOM20", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
+	 ))
+	 ), 
+   conditionalPanel(
+    condition = "input.type == '2Dmito'",     
+	 fluidRow(
+	   splitLayout(cellWidths=c("25%","25%","25%","25%"),
+	   plotOutput("Dystrophin",brush = brushOpts(id = "brush_Dystrophin", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
+	   plotOutput("DNA1",brush = brushOpts(id = "brush_DNA1", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
+	   plotOutput("DNA2",brush = brushOpts(id = "brush_DNA2", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
 	 ))
 	 ), 
 	checkboxInput("axrngCheck", label = "Allow plot y-axis range to vary between patients?", value = TRUE, width = NULL),
@@ -317,6 +331,54 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
 	}
   })
+
+    observeEvent(eventExpr = input$brush_TOM20, handlerExpr = {
+    dl = d()
+	dl$value = log(dl$value)
+    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
+    bps = brushedPoints(dw, input$brush_TOM20, paste("value",mitochan,sep="."), "value.TOM20")
+	if(length(bps$cell_id)==0) {
+	  selected$ids=c()
+	}else{
+	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
+	}
+  })
+
+    observeEvent(eventExpr = input$brush_Dystrophin, handlerExpr = {
+    dl = d()
+	dl$value = log(dl$value)
+    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
+    bps = brushedPoints(dw, input$brush_Dystrophin, paste("value",mitochan,sep="."), "value.Dystrophin")
+	if(length(bps$cell_id)==0) {
+	  selected$ids=c()
+	}else{
+	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
+	}
+  })
+
+    observeEvent(eventExpr = input$brush_DNA1, handlerExpr = {
+    dl = d()
+	dl$value = log(dl$value)
+    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
+    bps = brushedPoints(dw, input$brush_DNA1, paste("value",mitochan,sep="."), "value.DNA1")
+	if(length(bps$cell_id)==0) {
+	  selected$ids=c()
+	}else{
+	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
+	}
+  })
+
+    observeEvent(eventExpr = input$brush_DNA2, handlerExpr = {
+    dl = d()
+	dl$value = log(dl$value)
+    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
+    bps = brushedPoints(dw, input$brush_DNA2, paste("value",mitochan,sep="."), "value.DNA2")
+	if(length(bps$cell_id)==0) {
+	  selected$ids=c()
+	}else{
+	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
+	}
+  })
   
    observeEvent(eventExpr = input$showControls, handlerExpr = {  
 	if(input$showControls) {
@@ -401,7 +463,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	}
 	
 	myarrayplot = function(){
-	 op = par(mfrow=c(4,2),mar=c(3.2, 3.2, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
+	 op = par(mfrow=c(4,3),mar=c(3.2, 3.2, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
 	  alld = d()
 	  allc = ctrld()
 	  allrat = ratdat()
@@ -504,7 +566,26 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="OSCP",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("G (",chlabs["OSCP"],")",sep=""),logify = TRUE)
 	par(op)
 	})
-  
+	output$TOM20 <- renderPlot({
+	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
+	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="TOM20",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("H (",chlabs["OSCP"],")",sep=""),logify = TRUE)
+	par(op)
+	})
+	output$Dystrophin <- renderPlot({
+	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
+	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="Dystrophin",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("I (",chlabs["OSCP"],")",sep=""),logify = TRUE)
+	par(op)
+	})
+	output$DNA1 <- renderPlot({
+	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
+	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="DNA1",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("J (",chlabs["OSCP"],")",sep=""),logify = TRUE)
+	par(op)
+	})
+	output$DNA2 <- renderPlot({
+	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
+	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="DNA2",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("K (",chlabs["OSCP"],")",sep=""),logify = TRUE)
+	par(op)
+	})
   output$IMC_stripchart <- renderPlot({
     mystripchart()
   },width=850,height=850,pointsize=26)
@@ -514,11 +595,11 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
   },width=850,height=850,pointsize=26)
   
    output$download <- downloadHandler(
-    filename =  paste("stripchart","pdf",sep="."),
+    filename =  paste("figures","pdf",sep="."),
     # content is a function with argument file. content writes the plot to the device
     content = function(file) {
 	  if(input$type=="2Dmito"){
-	  pdf(file, pointsize=16,width = 8.27, height = 16.54)
+	  pdf(file, pointsize=16,width =  8.27, height =  8.27*4/3)
         myarrayplot()
 	  }else{
 	  pdf(file, pointsize=16,width = 8.27, height = 8.27)
@@ -530,11 +611,11 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 
     output$download_png <- downloadHandler(
 	
-    filename =  paste("stripchart","png",sep="."),
+    filename =  paste("figures","png",sep="."),
     # content is a function with argument file. content writes the plot to the device
     content = function(file) {
 	  if(input$type=="2Dmito"){
-       png(file, width=1750, height=3500, pointsize=51)
+       png(file, width=1750, height=1750*4/3, pointsize=51)
         myarrayplot()
 	  }else{
        png(file, width=1750, height=1750, pointsize=51)

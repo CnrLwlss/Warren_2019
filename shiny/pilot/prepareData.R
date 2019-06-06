@@ -1,7 +1,8 @@
 pdat = fread("../pilot_data.csv",sep=",",stringsAsFactors=FALSE)
-grp = ifelse(substring(pdat$Folder,1,1)=="C","control","patient")
+grp = ifelse(substring(pdat$Folder,1,1)=="C","Control","Patient")
 draw = data.frame(value=pdat$Value,id=pdat$ID,channel=pdat$Channel,patient_type=grp,replicate=1,subject_group=grp,patrep_id = paste(pdat$Folder,sprintf("R%02d",1),sep=""),stringsAsFactors=FALSE)
 draw$cell_id = paste(draw$patrep_id,sprintf("%04d",draw$id),sep="_")
+draw$cluster = 1
 
 chans = c("133Cs_133Cs", "134Xe_134X", "138Ba_138Ba", "153Eu_SDHA", "155Gd_TOMM20", 
 "158Gd_158Gd", "160Gd_NDUFB8", "161Dy_OSCP", "164Dy_GRIM19", 

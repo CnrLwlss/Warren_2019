@@ -5,7 +5,7 @@ library(corrgram)
 source("../plotFunctions.R", local = TRUE)
 source("../dataFunctions.R", local = TRUE)
 
-subtext =c("healthy control","point mutation in mito. encoded tRNA Leucine 1 (MT-TL1)")
+subtext =c("healthy control","POLG")
 names(subtext) = c("Control", "Patient")
 
 cutcords = c(2.5,3.5,4.5,6.5,7.5)#,8.5)
@@ -20,8 +20,8 @@ source("../parseData.R", local = TRUE)
 fulldat = "../pilot_data.txt"
 zipdat = "../pilot_datasmall.txt.gz"
 
-cord = c("NDUFA13","NDUFB8","SDHA", "UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1","TOM20","Dystrophin","DNA1","DNA2")
-chlabs=c("CI","CI","CII", "CIII","CIV","CIV","CV","OMM","OMM","OMM","OMM","OMM")
+cord = c("NDUFA13","NDUFB8","SDHA", "UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"TOM20","Dystrophin","DNA1","DNA2")
+chlabs=c("CI","CI","CII", "CIII","CIV","CIV","CV","OMM")#,"OMM","OMM","OMM","OMM")
 names(chlabs) = cord
 mitochan = "VDAC1"
 
@@ -120,17 +120,7 @@ fluidPage(
 	   splitLayout(cellWidths=c("25%","25%","25%","25%"),
 	   plotOutput("COX4",brush = brushOpts(id = "brush_COX4", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
 	   plotOutput("MTCO1",brush = brushOpts(id = "brush_MTCO1", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
-	   plotOutput("OSCP",brush = brushOpts(id = "brush_OSCP", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
-	   plotOutput("TOM20",brush = brushOpts(id = "brush_TOM20", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
-	 ))
-	 ), 
-   conditionalPanel(
-    condition = "input.type == '2Dmito'",     
-	 fluidRow(
-	   splitLayout(cellWidths=c("25%","25%","25%","25%"),
-	   plotOutput("Dystrophin",brush = brushOpts(id = "brush_Dystrophin", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
-	   plotOutput("DNA1",brush = brushOpts(id = "brush_DNA1", delay = 3000, delayType = "debounce", resetOnNew = TRUE)),
-	   plotOutput("DNA2",brush = brushOpts(id = "brush_DNA2", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
+	   plotOutput("OSCP",brush = brushOpts(id = "brush_OSCP", delay = 3000, delayType = "debounce", resetOnNew = TRUE))
 	 ))
 	 ), 
 	checkboxInput("axrngCheck", label = "Allow plot y-axis range to vary between patients?", value = TRUE, width = NULL),
@@ -331,54 +321,6 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
 	}
   })
-
-    observeEvent(eventExpr = input$brush_TOM20, handlerExpr = {
-    dl = d()
-	dl$value = log(dl$value)
-    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
-    bps = brushedPoints(dw, input$brush_TOM20, paste("value",mitochan,sep="."), "value.TOM20")
-	if(length(bps$cell_id)==0) {
-	  selected$ids=c()
-	}else{
-	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
-	}
-  })
-
-    observeEvent(eventExpr = input$brush_Dystrophin, handlerExpr = {
-    dl = d()
-	dl$value = log(dl$value)
-    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
-    bps = brushedPoints(dw, input$brush_Dystrophin, paste("value",mitochan,sep="."), "value.Dystrophin")
-	if(length(bps$cell_id)==0) {
-	  selected$ids=c()
-	}else{
-	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
-	}
-  })
-
-    observeEvent(eventExpr = input$brush_DNA1, handlerExpr = {
-    dl = d()
-	dl$value = log(dl$value)
-    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
-    bps = brushedPoints(dw, input$brush_DNA1, paste("value",mitochan,sep="."), "value.DNA1")
-	if(length(bps$cell_id)==0) {
-	  selected$ids=c()
-	}else{
-	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
-	}
-  })
-
-    observeEvent(eventExpr = input$brush_DNA2, handlerExpr = {
-    dl = d()
-	dl$value = log(dl$value)
-    dw = reshape(dl[,c("cell_id","ch","value")],idvar="cell_id",timevar="ch",direction="wide")
-    bps = brushedPoints(dw, input$brush_DNA2, paste("value",mitochan,sep="."), "value.DNA2")
-	if(length(bps$cell_id)==0) {
-	  selected$ids=c()
-	}else{
-	  selected$ids = sort(unique(c(selected$ids, bps$cell_id)))
-	}
-  })
   
    observeEvent(eventExpr = input$showControls, handlerExpr = {  
 	if(input$showControls) {
@@ -564,26 +506,6 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	output$OSCP <- renderPlot({
 	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
 	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="OSCP",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("G (",chlabs["OSCP"],")",sep=""),logify = TRUE)
-	par(op)
-	})
-	output$TOM20 <- renderPlot({
-	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
-	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="TOM20",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("H (",chlabs["OSCP"],")",sep=""),logify = TRUE)
-	par(op)
-	})
-	output$Dystrophin <- renderPlot({
-	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
-	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="Dystrophin",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("I (",chlabs["OSCP"],")",sep=""),logify = TRUE)
-	par(op)
-	})
-	output$DNA1 <- renderPlot({
-	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
-	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="DNA1",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("J (",chlabs["OSCP"],")",sep=""),logify = TRUE)
-	par(op)
-	})
-	output$DNA2 <- renderPlot({
-	op = par(mar=c(4, 2.75, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
-	    arrayplot(d(),ctrld(),ratdat(),cord=cord,ch="DNA2",ids=selected$ids,reg_diff = cond(),mitochan="VDAC1",hichan=input$hichan,showControls=input$showControls,axrngCheck = input$axrngCheck, axrng=input$axrng, chlab=paste("K (",chlabs["OSCP"],")",sep=""),logify = TRUE)
 	par(op)
 	})
   output$IMC_stripchart <- renderPlot({

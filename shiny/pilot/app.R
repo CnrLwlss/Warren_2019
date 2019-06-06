@@ -405,7 +405,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
 	}
 	
 	myarrayplot = function(){
-	 op = par(mfrow=c(4,3),mar=c(3.2, 3.2, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
+	 op = par(mfrow=c(3,3),mar=c(3.2, 3.2, 1, 0.5) + 0.1,mgp=c(1.75, 0.7, 0))
 	  alld = d()
 	  allc = ctrld()
 	  allrat = ratdat()
@@ -521,7 +521,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
     # content is a function with argument file. content writes the plot to the device
     content = function(file) {
 	  if(input$type=="2Dmito"){
-	  pdf(file, pointsize=16,width =  8.27, height =  8.27*4/3)
+	  pdf(file, pointsize=16,width =  8.27, height =  8.27)
         myarrayplot()
 	  }else{
 	  pdf(file, pointsize=16,width = 8.27, height = 8.27)
@@ -537,7 +537,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
     # content is a function with argument file. content writes the plot to the device
     content = function(file) {
 	  if(input$type=="2Dmito"){
-       png(file, width=1750, height=1750*4/3, pointsize=51)
+       png(file, width=1750, height=1750, pointsize=51)
         myarrayplot()
 	  }else{
        png(file, width=1750, height=1750, pointsize=51)

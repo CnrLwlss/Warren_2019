@@ -5,8 +5,8 @@ library(corrgram)
 source("../plotFunctions.R", local = TRUE)
 source("../dataFunctions.R", local = TRUE)
 
-subtext =c("healthy control","nuclear-encoded mutation in CI","single, large-scale mtDNA deletion","point mutation in mito. encoded tRNA Leucine 1 (MT-TL1)","point mutation in mito. encoded tRNA (MT-TE)","point mutation in mito. encoded tRNA (MT-TG)","point mutation in mito. encoded tRNA (MT-TW)")
-names(subtext) = c("Control", "CI", "Deletion", "MT-TL1", "MT-TE", "MT-TG", "MT-TW")
+subtext =c("healthy control","point mutation in mito. encoded tRNA Leucine 1 (MT-TL1)")
+names(subtext) = c("Control", "Patient")
 
 cutcords = c(2.5,3.5,4.5,6.5,7.5)#,8.5)
 cordlabs = c("CI","CII","CIII","CIV","CV","OMM")#,"Cell")

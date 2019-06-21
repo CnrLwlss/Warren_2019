@@ -1,6 +1,17 @@
-dat = read.delim("dat.txt",stringsAsFactors=FALSE,sep="\t")
-dat = dat[!grepl("_LOG_",dat$channel),]
-dat = dat[grepl("R_",dat$channel),]
+cord = c("NDUFA13","NDUFB8","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1")#,"Dystrophin","DNA1")
+mitochan = "VDAC1"
+source("parseData.R", local = TRUE)
+
+dat = getData("dat.txt",cord,mitochan)
+patreps = unique(dat$patrep_id)
+
+dats = lapply(patreps, function(x) updateDat(dat, "theta (VDAC1)", x, "NDUFB8", cord))
+dat = do.call("rbind",dats)
+
+# Uncommenting these lines would calculate correlations based on VDAC1 ratio instead
+#dat = dat[!grepl("_LOG_",dat$channel),]
+#dat = dat[grepl("R_",dat$channel),]
+
 dat$ch = substring(dat$channel,regexpr("\\_[^\\_]*$", dat$channel)+1,nchar(dat$channel))
 dat$chanid = paste(dat$patrep_id,dat$ch,sep="_")
 agg = aggregate(dat,by=list(dat$chanid),FUN=mean)
@@ -28,7 +39,7 @@ makePlot=function(xrep,yrep){
   axrng[2] = 1.1*axrng[2]
   corval = signif(cor(xvals,yvals),2)
   mlab = paste("Correlation:",corval)
-  plot(xvals,yvals,type="n",xlab=paste("Mean ratio, replicate",xrep),ylab=paste("Mean ratio, replicate",yrep),xlim=axrng,ylim=axrng,main=mlab)
+  plot(xvals,yvals,type="n",xlab=paste("Mean theta, replicate",xrep),ylab=paste("Mean theta, replicate",yrep),xlim=axrng,ylim=axrng,main=mlab)
   abline(a=0,b=1,lwd=2,col="lightgrey")
   points(xvals,yvals,pch=16,col=cols)
   text(xvals,yvals,ids,pos = 4,cex=0.5)

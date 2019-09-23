@@ -5,7 +5,7 @@ getData = function(fname,cord,mitochan="VDAC1"){
   dat$channel = gsub("GRIM19","NDUFA13",dat$channel)
 
   dat$ch = substring(dat$channel,regexpr("\\_[^\\_]*$", dat$channel)+1,nchar(dat$channel))
-  dat = dat[dat$ch%in%cord,]
+  dat = dat[dat$ch%in%c(cord,"Area","AspectRatio","Circularity","Perimeter"),]
 
   dat$type = "Mean intensity"
   dat$type[grepl("LOG_",dat$channel)] = "Log mean intensity"
@@ -14,6 +14,11 @@ getData = function(fname,cord,mitochan="VDAC1"){
   dat$type[grepl("R_MED_",dat$channel)] = "Ratio median intensity (VDAC1)"
   dat$type[grepl("R_LOG_",dat$channel)] = "Ratio log mean intensity (VDAC1)"
   dat$type[grepl("Z_",dat$channel)] = "z-score"
+  dat$type[dat$channel=="Area"] = "Area"
+  dat$type[dat$channel=="AspectRatio"] = "AspectRatio"
+  dat$type[dat$channel=="Circularity"] = "Circularity"
+  dat$type[dat$channel=="Perimeter"] = "Perimeter"
+  
   dat$outlier_diff = "NODIFF"
   dat$regression_diff = "NODIFF"
   dat$z_diff = "NODIFF"

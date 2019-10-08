@@ -79,9 +79,9 @@ tSNE_plot = function(dts, cols){
   return(dts)
 }
 
-hiliteChannel = function(dat, hilite_ch = "NDUFB8", hilite_type = "theta (VDAC1)"){
+hiliteChannel = function(dat, hilite_ch = "NDUFB8", hilite_type = "theta (VDAC1)", alpha=0.3){
  hcol = colorRamp(c("red","yellow","blue"),space="Lab")
- hcol_rgb = function(x, alpha=0.3){
+ hcol_rgb = function(x, alpha=alpha){
    vals = hcol(x)
    return(rgb(vals[1]/255,vals[2]/255,vals[3]/255,alpha))
  }

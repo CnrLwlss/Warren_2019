@@ -1,4 +1,5 @@
 source("dataFunctions.R")
+source("parseData.R")
 
 hiliteChannel = function(dat, hilite_ch = "NDUFB8", hilite_type = "theta (VDAC1)",alph=0.3){
  hcol = colorRamp(c("red","yellow","blue"),space="Lab")
@@ -118,53 +119,54 @@ dat$type[grepl("Circularity",dat$channel)] = "circularity"
 
 write.table(dat,"dat.txt",sep="\t",quote=FALSE,row.names=FALSE)
 
-dat = updateDat(dat,"theta (VDAC1)",)
+dat = as.data.frame(getData("dat.txt",cord,"VDAC1"))
+
+#dat = updateDat(dat,"theta (VDAC1)",)
 
 bychans = c("NDUFB8","SDHA","UqCRC2","COX4+4L2","OSCP","VDAC1","AspectRatio","Circularity")
 
 cmax = max(dat$value[dat$channel%in%c("xCoord","yCoord")])
 
 library(plotfunctions)
+library(plotrix)
 alph=1.0
 
 pdf("SpatialReport.pdf")
-for(bychan in bychans){
-  type = "mean intensity"
-  if(bychan=="AspectRatio") type = "aspect ratio"
-  if(bychan=="Area") type = "area"
-  if(bychan=="Perimeter") type = "perimeter"
-  if(bychan=="Circularity") type = "circularity"
+for(bychan in bychans[bychans!="VDAC1"]){
+  type = "theta (VDAC1)"
+  if(bychan=="AspectRatio") type = "AspectRatio"
+  if(bychan=="Area") type = "Area"
+  if(bychan=="Perimeter") type = "Perimeter"
+  if(bychan=="Circularity") type = "Circularity"
+  bc = bychan
+  if(type=="theta (VDAC1)") bc = paste("THETA",bychan,sep="_")
 
+  dhcolours = hiliteChannel(dat,bychan,type)
   hcol = colorRamp(c("red","yellow","blue"),space="Lab")
-  hcol_rgb = function(x, alpha=alph){
+  hcol_rgb = function(x, alpha=alpha){
    vals = hcol(x)
    return(rgb(vals[1]/255,vals[2]/255,vals[3]/255,alpha))
   }
 
-  dhilite = dat[(as.character(dat$ch)==bychan)&(dat$type==type),]
-  dhilite$quant = ecdf(dhilite$value)(dhilite$value)
- 
-  cseq = seq(min(dhilite$value),max(dhilite$value),length.out=30)
-  quants = seq(0,1,length.out=50)
-  lcols = sapply(quants,hcol_rgb)
+  vals = dat$value[(as.character(dat$ch)==bychan)&(dat$type==ifelse(type=="2Dmito","theta (VDAC1)",type))]
 
-  dhcolours = sapply(dhilite$quant,hcol_rgb)
-  names(dhcolours) = dhilite$cell_id
   #dat$cols = dhcolours[dat$cell_id]
 
   for(pid in sort(unique(dat$patrep_id))){
     cexmax = 2
     cexmin = 0.3
-    dt = dat[dat$patrep_id==pid,]
+    rmin = 5
+    rmax = 50
+    dt = dat[(as.character(dat$patrep_id)==pid),]
+    cmax = max(dt$value[dt$channel%in%c("xCoord","yCoord")])
+
     N = length(unique(dt$id))
 
     td = reshape(dt[,c("value","channel","cell_id")],idvar="cell_id",timevar="channel",direction="wide")
     colnames(td) = gsub("value.","",colnames(td))
     td$cex = cexmin+(td$Area-min(dat$value[dat$channel=="Area"]))/(max(dat$value[dat$channel=="Area"])-min(dat$value[dat$channel=="Area"]))*(cexmax-cexmin)
+    td$rad = rmin+(td$Area-min(dat$value[dat$channel=="Area"]))/(max(dat$value[dat$channel=="Area"])-min(dat$value[dat$channel=="Area"]))*(rmax-rmin)
 
-    td$fracs = (td[[bychan]]-min(dhilite$value))/(quantile(dhilite$value,0.95)-min(dhilite$value))
-    td$fracs[td$fracs>1.0]=1.0
-    td$cols = sapply(td$fracs,hcol_rgb)
 
     bchan = bychan
     if(bychan%in%names(complexes)) bchan = paste(bchan,"(",complexes[bychan],")",sep="")
@@ -172,8 +174,9 @@ for(bychan in bychans){
 
     plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
     rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],col = "grey90")
-    points(td$xCoord,max(td$yCoord)-td$yCoord,pch=16,cex=td$cex,col=td$cols)
-    gradientLegend(range(quants),color=lcols,side=2,pos.num=4,pos=0.85,dec=2,n.seg=5)
+    #points(td$xCoord,max(td$yCoord)-td$yCoord,pch=16,cex=td$cex,col=dhcolours[td$cell_id])
+    symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg=dhcolours[td$cell_id],bg=dhcolours[td$cell_id])
+    gradientLegend(range(vals),color=sapply(ecdf(vals)(seq(min(vals),max(vals),length.out=10)),hcol_rgb),side=4,pos.num=4,pos=0.85,dec=2,n.seg=5)
   }
 }
 dev.off()

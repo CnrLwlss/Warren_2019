@@ -180,3 +180,40 @@ for(bychan in bychans[bychans!="VDAC1"]){
   }
 }
 dev.off()
+
+hypertest=function(x,m,y,n) {
+    1-phyper(x-1,y,n-y,m)
+  }
+
+dmat = as.matrix(dist(data.frame(x=td$xCoord,y=td$yCoord)))
+colnames(dmat)=td$cell_id
+rownames(dmat)=td$cell_id
+
+neighb = dmat<=5*mean(sqrt(td$Area/(2*pi)))
+sum(neighb)/length(td$cell_id)
+
+plot(density(td[["THETA_COX4+4L2"]]))
+defect = td[["THETA_COX4+4L2"]]<40
+Ndef = sum(defect)
+Ntot = length(defect)
+
+pvals=rep(1,Ndef)
+samps = sample(seq_along(td$cell_id),4,replace=FALSE)
+op=par(mfrow=c(2,2))
+#for(i in sample(td$cell_id,4,replace=FALSE)){
+#for(j in seq_along(td$cell_id)){
+for(j in seq_along(td$cell_id[defect])){
+ i = td$cell_id[j]
+ pvals[j] = hypertest(sum(neighb[i,]&defect),sum(neighb[i,]),Ndef-1,Ntot-1)
+  plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
+  symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg="grey",bg="grey")
+  symbols(td$xCoord[neighb[i,]],max(td$yCoord)-td$yCoord[neighb[i,]],td$rad[neighb[i,]],inches=FALSE,add=TRUE,fg="blue",bg="blue")
+  symbols(td$xCoord[td$cell_id==i],max(td$yCoord)-td$yCoord[td$cell_id==i],td$rad[td$cell_id==i],inches=FALSE,add=TRUE,fg="red",bg="red")
+  symbols(td$xCoord[defect],max(td$yCoord)-td$yCoord[defect],td$rad[defect]/2,inches=FALSE,add=TRUE,fg="yellow",bg="yellow")
+  #invisible(readline(prompt="Press [enter] to continue"))
+}
+par(op)
+
+qvals = p.adjust(pvals,method="fdr")
+sum(pvals<0.05)/length(pvals)
+sum(qvals<0.05)/length(qvals)

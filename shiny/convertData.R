@@ -1,6 +1,10 @@
 source("dataFunctions.R")
 source("parseData.R")
 
+hypertest=function(x,m,y,n) {
+    1-phyper(x-1,y,n-y,m)
+  }
+
 hiliteChannel = function(dat, hilite_ch = "NDUFB8", hilite_type = "theta (VDAC1)",alph=0.3){
  hcol = colorRamp(c("red","yellow","blue"),space="Lab")
  hcol_rgb = function(x, alpha=alph){
@@ -16,7 +20,7 @@ hiliteChannel = function(dat, hilite_ch = "NDUFB8", hilite_type = "theta (VDAC1)
  return(dhcolours[dat$cell_id])
 }
 
-cord = c("NDUFB8","GRIM19","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1","Dystrophin","DNA1")
+cord = c("NDUFB8","NDUFA13","SDHA","UqCRC2","COX4+4L2","MTCO1","OSCP","VDAC1","Dystrophin","DNA1")
 cutcords = c(2.5,3.5,4.5,6.5,7.5,8.5)
 cordlabs = c("CI","CII","CIII","CIV","CV","OMM","Cell")
 
@@ -123,7 +127,7 @@ dat = as.data.frame(getData("dat.txt",cord,"VDAC1"))
 
 #dat = updateDat(dat,"theta (VDAC1)",)
 
-bychans = c("NDUFB8","SDHA","UqCRC2","COX4+4L2","OSCP","VDAC1","AspectRatio","Circularity")
+bychans = c("NDUFB8","SDHA","UqCRC2","COX4+4L2","OSCP","VDAC1")
 
 cmax = max(dat$value[dat$channel%in%c("xCoord","yCoord")])
 
@@ -131,7 +135,7 @@ library(plotfunctions)
 library(plotrix)
 alph=1.0
 
-pdf("SpatialReport.pdf")
+pdf("SpatialReport.pdf",width=14,height=7)
 for(bychan in bychans[bychans!="VDAC1"]){
   type = "theta (VDAC1)"
   if(bychan=="AspectRatio") type = "AspectRatio"
@@ -141,7 +145,7 @@ for(bychan in bychans[bychans!="VDAC1"]){
   bc = bychan
   if(type=="theta (VDAC1)") bc = paste("THETA",bychan,sep="_")
 
-  dhcolours = hiliteChannel(dat,bychan,type)
+  dhcolours = hiliteChannel(dat,bychan,type,alp=1.0)
   hcol = colorRamp(c("red","yellow","blue"),space="Lab")
   hcol_rgb = function(x, alpha=alpha){
    vals = hcol(x)
@@ -157,63 +161,83 @@ for(bychan in bychans[bychans!="VDAC1"]){
     cexmin = 0.3
     rmin = 5
     rmax = 50
+    mitochan = "VDAC1"
+    dat2 = as.data.frame(updateDat(dat,type,pid,bychan,cord),stringsAsFactors=FALSE)
+    dat$outlier_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$outlier_diff)
+    dat$regression_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$regression_diff)
+    dat$z_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$z_diff)
     dt = dat[(as.character(dat$patrep_id)==pid),]
+    
     cmax = max(dt$value[dt$channel%in%c("xCoord","yCoord")])
 
     N = length(unique(dt$id))
 
+    difftype = "regression_diff"
     td = reshape(dt[,c("value","channel","cell_id")],idvar="cell_id",timevar="channel",direction="wide")
+    tdiff = reshape(dt[,c(difftype,"channel","cell_id")],idvar="cell_id",timevar="channel",direction="wide")
+    colnames(tdiff) = gsub(paste(difftype,".",sep=""),"",colnames(tdiff))
     colnames(td) = gsub("value.","",colnames(td))
     td$cex = cexmin+(td$Area-min(dat$value[dat$channel=="Area"]))/(max(dat$value[dat$channel=="Area"])-min(dat$value[dat$channel=="Area"]))*(cexmax-cexmin)
     td$rad = rmin+(td$Area-min(dat$value[dat$channel=="Area"]))/(max(dat$value[dat$channel=="Area"])-min(dat$value[dat$channel=="Area"]))*(rmax-rmin)
-
 
     bchan = bychan
     if(bychan%in%names(complexes)) bchan = paste(bchan,"(",complexes[bychan],")",sep="")
     mlab = paste(paste(pid,"coloured by",bchan,"N =",N),subtext[dt$subject_group[1]],sep="\n")
 
+    # Deficiency gradient
+    op=par(mfrow=c(1,2))
     plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
     rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],col = "grey90")
     #points(td$xCoord,max(td$yCoord)-td$yCoord,pch=16,cex=td$cex,col=dhcolours[td$cell_id])
     symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg=dhcolours[td$cell_id],bg=dhcolours[td$cell_id])
     gradientLegend(range(vals),color=sapply(ecdf(vals)(seq(min(vals),max(vals),length.out=10)),hcol_rgb),side=4,pos.num=4,pos=0.85,dec=2,n.seg=5)
+
+    # Neighbourhood analysis
+    dmat = as.matrix(dist(data.frame(x=td$xCoord,y=td$yCoord)))
+    colnames(dmat)=td$cell_id
+    rownames(dmat)=td$cell_id
+
+    neighb = dmat<=5*mean(sqrt(td$Area/(2*pi)))
+    sum(neighb)/length(td$cell_id)
+
+    defect = tdiff[[bc]]=="BELOW"
+    Ndef = sum(defect)
+    Ntot = length(defect)
+
+    pvals=rep(1,Ndef)
+    samps = sample(seq_along(td$cell_id),4,replace=FALSE)
+
+    neighbs = c()
+
+    defects = td$cell_id[defect]
+    for(j in seq_along(td$cell_id[defect])){
+     i = td$cell_id[defect][j]
+     nb = td$cell_id[neighb[i,]]
+     nb = nb[nb!=i]
+     neighbs = c(neighbs,nb)
+     pvals[j] = hypertest(sum(neighb[i,]&defect),sum(neighb[i,]),Ndef-1,Ntot-1)
+    }
+    qvals = p.adjust(pvals,method="fdr")
+    neighbs = unique(neighbs)
+    defneighb = intersect(neighbs,defects)
+    allhyp = hypertest(length(defneighb),length(neighbs),Ndef,Ntot)
+
+    mlab2 = paste("No. defective:",Ndef,"No. in neighbourhood:",length(neighbs),"Overlap:",length(defneighb),"\np-value over-representation:",allhyp)
+    plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab2,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
+    symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg="grey",bg="grey")
+
+      #for(i in defects){
+      # symbols(td$xCoord[neighb[i,]],max(td$yCoord)-td$yCoord[neighb[i,]],td$rad[neighb[i,]],inches=FALSE,add=TRUE,fg="blue",bg="blue")
+      # symbols(td$xCoord[td$cell_id==i],max(td$yCoord)-td$yCoord[td$cell_id==i],td$rad[td$cell_id==i],inches=FALSE,add=TRUE,fg="red",bg="red")
+      #}
+       if(length(neighbs)>0) symbols(td$xCoord[td$cell_id%in%neighbs],max(td$yCoord)-td$yCoord[td$cell_id%in%neighbs],td$rad[td$cell_id%in%neighbs],inches=FALSE,add=TRUE,fg="blue",bg="blue")
+       if(Ndef>0) symbols(td$xCoord[defect],max(td$yCoord)-td$yCoord[defect],td$rad[defect]/2,inches=FALSE,add=TRUE,fg="yellow",bg="yellow")
+
+
+
+    par(op)
   }
 }
 dev.off()
 
-hypertest=function(x,m,y,n) {
-    1-phyper(x-1,y,n-y,m)
-  }
 
-dmat = as.matrix(dist(data.frame(x=td$xCoord,y=td$yCoord)))
-colnames(dmat)=td$cell_id
-rownames(dmat)=td$cell_id
-
-neighb = dmat<=5*mean(sqrt(td$Area/(2*pi)))
-sum(neighb)/length(td$cell_id)
-
-plot(density(td[["THETA_COX4+4L2"]]))
-defect = td[["THETA_COX4+4L2"]]<40
-Ndef = sum(defect)
-Ntot = length(defect)
-
-pvals=rep(1,Ndef)
-samps = sample(seq_along(td$cell_id),4,replace=FALSE)
-op=par(mfrow=c(2,2))
-#for(i in sample(td$cell_id,4,replace=FALSE)){
-#for(j in seq_along(td$cell_id)){
-for(j in seq_along(td$cell_id[defect])){
- i = td$cell_id[j]
- pvals[j] = hypertest(sum(neighb[i,]&defect),sum(neighb[i,]),Ndef-1,Ntot-1)
-  plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
-  symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg="grey",bg="grey")
-  symbols(td$xCoord[neighb[i,]],max(td$yCoord)-td$yCoord[neighb[i,]],td$rad[neighb[i,]],inches=FALSE,add=TRUE,fg="blue",bg="blue")
-  symbols(td$xCoord[td$cell_id==i],max(td$yCoord)-td$yCoord[td$cell_id==i],td$rad[td$cell_id==i],inches=FALSE,add=TRUE,fg="red",bg="red")
-  symbols(td$xCoord[defect],max(td$yCoord)-td$yCoord[defect],td$rad[defect]/2,inches=FALSE,add=TRUE,fg="yellow",bg="yellow")
-  #invisible(readline(prompt="Press [enter] to continue"))
-}
-par(op)
-
-qvals = p.adjust(pvals,method="fdr")
-sum(pvals<0.05)/length(pvals)
-sum(qvals<0.05)/length(qvals)

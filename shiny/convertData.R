@@ -135,7 +135,7 @@ library(plotfunctions)
 library(plotrix)
 alph=1.0
 
-pdf("SpatialReport.pdf",width=14,height=7)
+pdf("SpatialReport.pdf",width=14,height=14)
 for(bychan in bychans[bychans!="VDAC1"]){
   type = "theta (VDAC1)"
   if(bychan=="AspectRatio") type = "AspectRatio"
@@ -152,16 +152,14 @@ for(bychan in bychans[bychans!="VDAC1"]){
    return(rgb(vals[1]/255,vals[2]/255,vals[3]/255,alpha))
   }
 
-  vals = dat$value[(as.character(dat$ch)==bychan)&(dat$type==ifelse(type=="2Dmito","theta (VDAC1)",type))]
-
-  #dat$cols = dhcolours[dat$cell_id]
-
   for(pid in sort(unique(dat$patrep_id))){
+
     cexmax = 2
     cexmin = 0.3
     rmin = 5
     rmax = 50
     mitochan = "VDAC1"
+    vals = dat$value[(as.character(dat$ch)==bychan)&(dat$type==ifelse(type=="2Dmito","theta (VDAC1)",type))]
     dat2 = as.data.frame(updateDat(dat,type,pid,bychan,cord),stringsAsFactors=FALSE)
     dat$outlier_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$outlier_diff)
     dat$regression_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$regression_diff)
@@ -185,7 +183,7 @@ for(bychan in bychans[bychans!="VDAC1"]){
     mlab = paste(paste(pid,"coloured by",bchan,"N =",N),subtext[dt$subject_group[1]],sep="\n")
 
     # Deficiency gradient
-    op=par(mfrow=c(1,2))
+    op=par(mfrow=c(2,2))
     plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
     rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],col = "grey90")
     #points(td$xCoord,max(td$yCoord)-td$yCoord,pch=16,cex=td$cex,col=dhcolours[td$cell_id])
@@ -233,6 +231,86 @@ for(bychan in bychans[bychans!="VDAC1"]){
        if(length(neighbs)>0) symbols(td$xCoord[td$cell_id%in%neighbs],max(td$yCoord)-td$yCoord[td$cell_id%in%neighbs],td$rad[td$cell_id%in%neighbs],inches=FALSE,add=TRUE,fg="blue",bg="blue")
        if(Ndef>0) symbols(td$xCoord[defect],max(td$yCoord)-td$yCoord[defect],td$rad[defect]/2,inches=FALSE,add=TRUE,fg="yellow",bg="yellow")
 
+
+# RANDOM SAMPLING
+    vals = dat$value[(as.character(dat$ch)==bychan)&(dat$type==ifelse(type=="2Dmito","theta (VDAC1)",type))]
+    dat2 = as.data.frame(updateDat(dat,type,pid,bychan,cord),stringsAsFactors=FALSE)
+    dat$outlier_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$outlier_diff)
+    dat$regression_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$regression_diff)
+    dat$z_diff[(dat$patrep_id==pid)&(dat$ch%in%unique(dat2$ch))]=as.character(dat2$z_diff)
+    dt = dat[(as.character(dat$patrep_id)==pid),]
+
+    uids = unique(dt$cell_id)
+    mult = dim(dt)[1]/length(uids)
+    sampind = sample(1:length(uids),length(uids),replace=FALSE)
+
+    sampinds = rep(sampind,mult)
+    sampinds = sampinds + rep((0:(mult-1))*length(sampind),each=length(sampind))
+    dt$value = dt$value[sampinds]
+    
+        cmax = max(dt$value[dt$channel%in%c("xCoord","yCoord")])
+
+    N = length(unique(dt$id))
+
+    difftype = "regression_diff"
+    td = reshape(dt[,c("value","channel","cell_id")],idvar="cell_id",timevar="channel",direction="wide")
+    tdiff = reshape(dt[,c(difftype,"channel","cell_id")],idvar="cell_id",timevar="channel",direction="wide")
+    colnames(tdiff) = gsub(paste(difftype,".",sep=""),"",colnames(tdiff))
+    colnames(td) = gsub("value.","",colnames(td))
+    td$cex = cexmin+(td$Area-min(dat$value[dat$channel=="Area"]))/(max(dat$value[dat$channel=="Area"])-min(dat$value[dat$channel=="Area"]))*(cexmax-cexmin)
+    td$rad = rmin+(td$Area-min(dat$value[dat$channel=="Area"]))/(max(dat$value[dat$channel=="Area"])-min(dat$value[dat$channel=="Area"]))*(rmax-rmin)
+
+    bchan = bychan
+    if(bychan%in%names(complexes)) bchan = paste(bchan,"(",complexes[bychan],")",sep="")
+    mlab = paste(paste(pid,"coloured by",bchan,"N =",N),subtext[dt$subject_group[1]],sep="\n")
+
+    # Deficiency gradient
+    plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
+    rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],col = "grey90")
+    #points(td$xCoord,max(td$yCoord)-td$yCoord,pch=16,cex=td$cex,col=dhcolours[td$cell_id])
+    symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg=dhcolours[td$cell_id],bg=dhcolours[td$cell_id])
+    gradientLegend(range(vals),color=sapply(ecdf(vals)(seq(min(vals),max(vals),length.out=10)),hcol_rgb),side=4,pos.num=4,pos=0.85,dec=2,n.seg=5)
+
+    # Neighbourhood analysis
+    dmat = as.matrix(dist(data.frame(x=td$xCoord,y=td$yCoord)))
+    colnames(dmat)=td$cell_id
+    rownames(dmat)=td$cell_id
+
+    neighb = dmat<=5*mean(sqrt(td$Area/(2*pi)))
+    sum(neighb)/length(td$cell_id)
+
+    defect = tdiff[[bc]]=="BELOW"
+    Ndef = sum(defect)
+    Ntot = length(defect)
+
+    pvals=rep(1,Ndef)
+    samps = sample(seq_along(td$cell_id),4,replace=FALSE)
+
+    neighbs = c()
+
+    defects = td$cell_id[defect]
+    for(j in seq_along(td$cell_id[defect])){
+     i = td$cell_id[defect][j]
+     nb = td$cell_id[neighb[i,]]
+     nb = nb[nb!=i]
+     neighbs = c(neighbs,nb)
+     pvals[j] = hypertest(sum(neighb[i,]&defect),sum(neighb[i,]),Ndef-1,Ntot-1)
+    }
+    qvals = p.adjust(pvals,method="fdr")
+    neighbs = unique(neighbs)
+    defneighb = intersect(neighbs,defects)
+    allhyp = hypertest(length(defneighb),length(neighbs),Ndef,Ntot)
+
+    mlab2 = paste("No. defective:",Ndef,"No. in neighbourhood:",length(neighbs),"Overlap:",length(defneighb),"\np-value over-representation:",allhyp)
+    plot(td$xCoord,max(td$yCoord)-td$yCoord,xlab="x-coordinate (px)",ylab="y-coordinate (px)",type="n",main=mlab2,cex.lab=1.5,cex.axis=1.5,xlim=c(0,cmax),ylim=c(0,cmax))
+    symbols(td$xCoord,max(td$yCoord)-td$yCoord,td$rad,inches=FALSE,add=TRUE,fg="grey",bg="grey")
+
+      #for(i in defects){
+      # symbols(td$xCoord[neighb[i,]],max(td$yCoord)-td$yCoord[neighb[i,]],td$rad[neighb[i,]],inches=FALSE,add=TRUE,fg="blue",bg="blue")
+      # symbols(td$xCoord[td$cell_id==i],max(td$yCoord)-td$yCoord[td$cell_id==i],td$rad[td$cell_id==i],inches=FALSE,add=TRUE,fg="red",bg="red")
+      #}
+       if(length(neighbs)>0) symbols(td$xCoord[td$cell_id%in%neighbs],max(td$yCoord)-td$yCoord[td$cell_id%in%neighbs],td$rad[td$cell_id%in%neighbs],inches=FALSE,add=TRUE,fg="blue",bg="blue")
+       if(Ndef>0) symbols(td$xCoord[defect],max(td$yCoord)-td$yCoord[defect],td$rad[defect]/2,inches=FALSE,add=TRUE,fg="yellow",bg="yellow")
 
 
     par(op)

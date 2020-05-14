@@ -10,7 +10,7 @@ http://mito.ncl.ac.uk/warren_2019/
 
 ## Local installation
 
-To install the app locally, first install R, then install the required dependencies (particularly Shiny):
+To install the app locally, first download and install [R](https://www.r-project.org/), then use R to install the required dependencies (particularly [Shiny](https://shiny.rstudio.com/)):
 
 ```R
 install.packages(c("shiny","corrgram","data.table"))

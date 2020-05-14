@@ -31,3 +31,7 @@ runApp()
 ```
 
 plotIMC should then open in your web browser.
+
+## Editing plotIMC
+
+It is possible to adapt the plotIMC source code to run with a different dataset, however it does require adapting the code, and therefore requires understanding R and Shiny.  plotIMC does not have a GUI for uploading different datasets.

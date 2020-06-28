@@ -1,6 +1,6 @@
 # plotIMC
 
-Source code for plotIMC from Warren et al. (2020).  
+Source code for plotIMC from Warren et al. (2020) ([v0.0.1](https://github.com/CnrLwlss/Warren_2019/releases/tag/v0.0.1)).
 
 ## Web version
 

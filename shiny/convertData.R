@@ -28,7 +28,7 @@ complexes = c("CI","CI","CII","CIII","CIV","CIV","CV","Mito","Cell wall","Nucleu
 names(complexes) = cord
 
 newids = c("P01","P02","P03","P04","P05","P06","P07","P08","P09","P10","C01","C02","C03")
-names(newids) = c("P_M0838","P_M0517","P_M0966","P_M0284","P_M0694","P_m0917","P_M963","P_M0913","P_M1513","P_M0207","C_m1180","C_M1089","C_M1217")
+names(newids) = c("P_M0838","P_M0517","P_M0966","P_M0284","P_M0694","P_M0917","P_M963","P_M0913","P_M1513","P_M0207","C_m1180","C_M1089","C_M1217")
 
 revnew=names(newids)
 names(revnew)=newids
@@ -55,7 +55,7 @@ sgroups = list(
 Control = c("C_m1180","C_M1089","C_M1217"),
 CI = c("P_M0838","P_M0517"), 
 Deletion = c("P_M0966","P_M0284"),
-"MT-TL1" = c("P_M0694","P_m0917","P_M963"),
+"MT-TL1" = c("P_M0694","P_M0917","P_M963"),
 "MT-TW" = c("P_M0207"),
 "MT-TG" = c("P_M0913"),
 "MT-TE" = c("P_M1513")

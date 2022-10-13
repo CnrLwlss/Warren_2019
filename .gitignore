@@ -37,3 +37,6 @@ rsconnect/
 *.pdf
 shiny/datsmall.txt.gz
 *.gz
+shiny/Area.R
+2Dmitoplots/2Dmitoplots
+2Dmitoplots/BootstrapParticles

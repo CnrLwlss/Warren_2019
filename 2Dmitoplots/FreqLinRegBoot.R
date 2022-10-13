@@ -17,6 +17,7 @@ pats = subjs[grep("P",subjs)]
 
 dir.create("BootstrapParticles", showWarnings = FALSE)
 dir.create("2Dmitoplots", showWarnings = FALSE)
+dir.create("FibreClasses", showWarnings = FALSE)
 
 getprops = function(dat,pat,chan,summary="mean intensity",mitochan="VDAC1"){
   bs = mitoplot(dat,pat,chan,summary=summary,mitochan=mitochan,bootstrap=TRUE,makeplot=FALSE)
@@ -26,14 +27,18 @@ getprops = function(dat,pat,chan,summary="mean intensity",mitochan="VDAC1"){
 }
 
 for(pat in pats){
+ patfibs = list()
  for(chan in cord[cord!=mitochan]){
   print(paste(pat,chan))
   png(file.path("2Dmitoplots",paste0(pat,"_",chan,".png")),width=1500,height=1500,pointsize=30)
   op = par(mar= c(4.4, 5.2, 4, 0.1))
-  mitoplot(dat,pat,chan,summary="mean intensity",mitochan=mitochan,lab_inner=chlabs[chan])
+  fullres = mitoplot(dat,pat,chan,summary="mean intensity",mitochan=mitochan,lab_inner=chlabs[chan])
+  patfibs[[chan]] = fullres$class
   par(op)
-  props = t(replicate(1000,getprops(dat,pat,chan)))
-  write.table(props,file=file.path("BootstrapParticles",paste0(pat,"_",chan,".txt")),sep="\t",quote=FALSE,row.names=FALSE)  
+  props = t(replicate(2,getprops(dat,pat,chan)))
+  #write.table(props,file=file.path("BootstrapParticles",paste0(pat,"_",chan,".txt")),sep="\t",quote=FALSE,row.names=FALSE)  
   dev.off()
  }
+ pf = data.frame(patfibs)
+ write.table(pf,file=file.path("FibreClasses",paste0("FibreClasses","_",pat,".txt")),sep="\t",quote=FALSE,row.names=FALSE)
 }

@@ -127,6 +127,7 @@ updateDat = function(dat, dtype, dsubject, dhichan, cord = c(), clevel = 0.95){
 	dvals$outlier_diff = factor(dvals$outlier_diff,levels=c("ABOVE","NODIFF","BELOW"))
     dvals$regression_diff = factor(dvals$regression_diff,levels=c("ABOVE","NODIFF","BELOW"))
 	dvals$z_diff = factor(dvals$z_diff,levels=c("ABOVE","NODIFF","BELOW"))
+    if(length(dvals$cluster)==0) dvals$cluster=1
 	dvals
 }
 

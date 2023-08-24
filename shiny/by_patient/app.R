@@ -348,6 +348,7 @@ plotIMC.pts = function (x, y, corr = NULL, col.regions, cor.method, cex = 0.4,..
   ctrld <- reactive({
     if(input$type == "2Dmito") {inpt = "Mean intensity"}else{inpt = input$type}
     cvals = dat[(dat$subject_group=="Control")&(dat$type==inpt),]
+    if(length(cvals$cluster)==0) cvals$cluster=1
 	cvals
   })
 

@@ -41,7 +41,7 @@ schart = function(dsig,csig,ids,subtext,nums,cord,cutcords,cordlabs,subjectLabel
 	  axrng = range(c(dsig$value,csig$value))
 	  if(grepl("theta",dtype)) axrng = c(0,90)
 	}
-    plot(NULL,xlab="",ylab = dtype,main = main,cex.main=0.75,las=2,axes=FALSE,log=logval,type="n",ylim=axrng,xlim=c(min(dsig$jitl),max(dsig$jitr)))
+    plot(NULL,xlab="",ylab = dtype,main = main,cex.main=0.75,las=2,axes=FALSE,log=logval,type="n",ylim=axrng,xlim=c(min(dsig$jitl[!is.infinite(dsig$jitl)],na.rm=TRUE),max(dsig$jitr[!is.infinite(dsig$jitr)],na.rm=TRUE)))
     rect(par("usr")[1], par("usr")[3], par("usr")[2], par("usr")[4], col = bcol)  
 
 	grid(NA,NULL,equilogs=FALSE,col="black",lwd=1.5)
